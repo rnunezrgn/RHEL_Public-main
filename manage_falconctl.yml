@@ -1,0 +1,15 @@
+---
+- hosts: all
+  gather_facts: False
+  connection: local
+  vars:
+    falcon_cid: ''
+  
+  tasks:
+#      - name: Set your CID on the sensor, substituting <CID> with your CID. This step is not required for versions 4.0 and earlier. 
+#        shell: sudo /opt/CrowdStrike/falconctl -s --cid={{falcon_cid}}
+
+      - name: Start falcon-sensor services
+        systemd:
+            state: started
+            name: falcon-sensor

@@ -1,0 +1,17 @@
+---
+- name: Install a giving package in Linux
+  hosts: all
+  gather_facts: False
+
+  tasks:
+    - name: Install package using yum when it's present
+      yum:
+        name: "{{ package_name }}"
+        state: latest
+      when: ansible_pkg_mgr == "yum"
+
+    - name: Install package using dnf when it's present
+      dnf:
+        name: "{{ package_name }}"
+        state: latest
+      when: ansible_pkg_mgr == "dnf"

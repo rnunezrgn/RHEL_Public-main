@@ -1,0 +1,28 @@
+---
+- name: Rotate SSH Keys
+  hosts: all
+  vars:
+    - new_pub_key: ~/.ssh/id_rsa_new.pub
+    - new_priv_key: ~/.ssh/id_rsa_new
+
+  tasks:
+    - name: Create new ssh key-pair
+      command: ssh-keygen -t rsa -N "" -q -f 
+      when: inventory_hostname == play_hosts[0]
+      delegate_to: localhost
+
+    - name: Add new key to authorized_keys
+      authorized_key: key=""
+                      user=root state=present
+
+    - name: Make use of new private key when connecting
+      set_fact: ansible_private_ssh_key=
+
+    - name: Make our new key exclusive
+      authorized_key: key=""
+                      user=root state=present exclusive=yes
+
+    - name: Move new key into default location
+      command: mv  ~/.ssh/id_rsa
+      when: inventory_hostname == play_hosts[0]
+      delegate_to: localhost

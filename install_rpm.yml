@@ -1,0 +1,35 @@
+---
+- name: Upgrading RPM module based on location
+  hosts: all
+  gather_facts: true
+  become_user: root
+  become: yes
+  vars:
+    package_name: ''
+
+  tasks:
+    - name: Copy RPM to install 
+      become: true
+      copy:
+        src: '/tmp/wine-mono-7.2.0-1pclos2022.noarch.rpm'
+        dest: '/var/tmp/wine-mono-7.2.0-1pclos2022.noarch.rpm'
+        owner: awx
+        group: awx
+        mode: 0644
+        force: yes
+        remote_src: yes
+      delegate_to: ansible-1
+
+    - name: Install RPM package using Dnf
+      dnf: 
+        name: '/var/tmp/wine-mono-7.2.0-1pclos2022.noarch.rpm'
+        state: latest
+        validate_certs: False
+      when: ansible_os_family == "RedHat" and ansible_pkg_mgr == "dnf"
+
+    - name: Install RPM package using Yum
+      yum:  
+        name: '/var/tmp/wine-mono-7.2.0-1pclos2022.noarch.rpm'
+        state: present
+        validate_certs: False
+      when: ansible_os_family == "RedHat" and ansible_pkg_mgr == "yum"

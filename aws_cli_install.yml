@@ -1,0 +1,45 @@
+---
+- name: Download & Install AWS CLI in Ansible Controller to manage AWS offline instances
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  become: true
+  vars:
+    ansible_python_interpreter: '/usr/bin/python3'
+
+  tasks:
+    - name: Download the AWScliv2 installation file
+      raw: curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+      register: curl_result
+      delegate_to: localhost
+
+    - name: Display curl results
+      debug:
+        var: curl_result
+
+    - name: Unzip AWScliv2 file
+      raw: /bin/unzip awscliv2.zip
+      register: unzip_result
+      delegate_to: localhost
+
+    - name: Display unzip results
+      debug:
+        var: unzip_result
+
+    - name: Installing awscli
+      raw: ./aws/install -i /usr/local/aws-cli -b /usr/local/bin
+      register: install_result
+      delegate_to: localhost
+
+    - name: Display install results
+      debug:
+        var: install_result 
+    
+    - name: Check aws version
+      raw: /usr/local/bin/aws --version
+      register: version_result
+      delegate_to: localhost
+
+    - name: Display version results
+      debug:
+        var: version_result

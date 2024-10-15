@@ -1,0 +1,14 @@
+---
+- name: Install RPM using yum URL based on location
+  hosts: all
+  gather_facts: True
+  vars:
+    package_name: ''  # ie. 'https://www.domain.com/download/vx/file.rpm' 
+
+  tasks:
+  - name: Install Crodstrike.falcon 
+    yum:
+      name: '{{ package_name }}'
+      state: present
+      validate_certs: False
+    become: yes

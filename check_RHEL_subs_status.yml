@@ -1,0 +1,16 @@
+---
+- hosts: all
+  gather_facts: False
+
+  tasks:
+    - name: List RHEL Subscription
+      command: subscription-manager list
+      register: my_release
+    - debug: 
+        var:  my_release.stdout_lines
+
+    - name: Show RHEL Status
+      command: subscription-manager status
+      register: my_substatus
+    - debug: 
+        var:  my_substatus.stdout_lines

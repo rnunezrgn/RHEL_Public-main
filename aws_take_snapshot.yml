@@ -1,0 +1,63 @@
+---
+- name: Clone AWS instances
+  hosts: localhost
+  gather_facts: false
+  vars:
+    default_count: '3'
+    INCREMENTAL: 'daily'
+    region: ''
+    to_region: 'us-east-1' # Destination region to copy snapshots
+    source_region: 'us-west-2' # The source region the Snapshot should be copied from
+
+  pre_tasks:
+    - name: Default to 3 snapshots if COUNT is not defined.
+      set_fact:
+        COUNT: "{{ default_count }}"
+      when: COUNT is not defined
+
+    - name: Verify incremental type (daily, weekly, monthly)
+      fail:
+        msg: "INCREMENTAL is not defined.  Allowed values are daily, weekly, or monthly.  Exiting."
+      when: INCREMENTAL is not defined or INCREMENTAL != 'daily' and INCREMENTAL != 'weekly' and INCREMENTAL != 'monthly'
+  
+  tasks:
+      - name: Record the Date & time
+        ansible.builtin.command:
+          cmd: "date '+%D:%H:%M:%S'"
+        delegate_to: 127.0.0.1
+        register: ansible_date_time
+
+      - name: "Get instances in AWS {{region}}"
+        amazon.aws.ec2_instance_info:
+          region: "{{ region }}"
+        register: ec2_instance_info
+
+      - name: Printing ALL Instance Information
+        ansible.builtin.debug:
+          msg:  "{{ ec2_instance_info }}"
+
+      - name: Printing the public dns name and instance ID 
+        ansible.builtin.debug:
+          msg:  "{{ ec2_instance_info.instances[0].public_dns_name }} and Instance ID is {{ ec2_instance_info.instances[0].instance_id }}"
+
+      - name:  "AWS Snapshot taken for Instance ID {{ ec2_instance_info.instances[0].instance_id }}"
+        amazon.aws.ec2_snapshot:
+          region: "{{ region }}"
+          instance_id: "{{ ec2_instance_info.instances[0].instance_id }}"
+          device_name: "/dev/sda1"
+          snapshot_tags:
+            incremental: "daily"
+        register: ec2_snap_info
+
+      - name: Printing Snapshot Information {{ ec2_snap_info.snapshot_id }}
+        ansible.builtin.debug:
+          msg:  "{{ ec2_snap_info }}"
+
+      - name: Copy Snapshot from AWS {{ source_region }} to AWS DR region {{ to_region }} and wait until available
+        community.aws.ec2_snapshot_copy:
+          source_region: "{{ region }}"
+          region: "{{ to_region }}"
+          source_snapshot_id: "{{ ec2_snap_info.snapshot_id }}"
+          wait: true
+          wait_timeout: 1200   # Default timeout is 600
+        register: snapshot_id

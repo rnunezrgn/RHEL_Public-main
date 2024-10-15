@@ -1,0 +1,16 @@
+---
+- name: Subscribe to RHEL
+  hosts: all
+  gather_facts: False
+  vars:
+    redhat_user: ''
+    redhat_password: ''
+    redhat_pool_id: ''
+
+  tasks:
+  - name: Subscribe to RHEL
+    redhat_subscription:
+      state: present
+      username: "{{ redhat_user }}"
+      password: "{{ redhat_password }}"
+      pool_ids: "{{ redhat_pool_id }}"

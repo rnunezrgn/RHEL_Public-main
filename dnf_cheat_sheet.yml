@@ -1,0 +1,57 @@
+---
+- hosts: all
+  gather_facts: False
+  vars:
+     dnf_option: ""
+     my_tag: ""
+
+  tasks:
+    - name: Update every package on the system
+      command: dnf "{{ dnf_option }}"
+      when: dnf_option == "update"
+      register: my_dnf
+      tags: "{{ dnf_option }}"
+
+    - debug:
+        var:  my_dnf.stdout_lines
+      when: dnf_option == "update"
+
+    - name: Check-updates availables for installed packages and dependencies
+      command: dnf "{{ dnf_option }}"
+      when: dnf_option == "check-update"
+      register: my_dnf
+      tags: "{{ dnf_option }}"
+
+    - debug:
+        var:  my_dnf.stdout_lines
+      when: dnf_option == "check-update"
+
+    - name: List availables all packages and available for RPM-based linux distro
+      command: dnf "{{ dnf_option }}"
+      when: dnf_option == "list"
+      register: my_dnf
+      tags: "{{ dnf_option }}"
+
+    - debug:
+        var:  my_dnf.stdout_lines
+      when: dnf_option == "list"
+        
+    - name: Print list of all enabled repositories
+      command: dnf "{{ dnf_option }}"
+      when: dnf_option == "repolist"
+      register: my_dnf
+      tags: "{{ dnf_option }}"
+
+    - debug:
+        var:  my_dnf.stdout_lines
+      when: dnf_option == "repolist"
+        
+    - name: Show information of what has happened in the DNF"s past execution
+      command: dnf "{{ dnf_option }}"
+      when: dnf_option == "history"
+      register: my_dnf
+      tags: "{{ dnf_option }}"
+
+    - debug:
+        var:  my_dnf.stdout_lines
+      when: dnf_option == "history"

@@ -1,0 +1,13 @@
+- name: Prevent https://ansible.redhat.com/ansible/automation-hub/token from expiring
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  vars:
+    url_name: "https://console.redhat.com/ansible/automation-hub/token"
+    user_token: ""
+    ansible_user: ""
+    ansible_password: ""
+
+  tasks:
+    - name: Prevent "{{ url_name }}" from expiring
+      ansible.builtin.raw: curl -ku "{{ansible_user}}":"{{ansible_password}}" -k "{{ url_name }}" -d grant_type=refresh_token -d client_id="cloud-services" -d refresh_token="{{ user_token }}" --fail --silent --show-error --output /dev/null

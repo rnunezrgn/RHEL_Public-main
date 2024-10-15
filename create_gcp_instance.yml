@@ -1,0 +1,73 @@
+---
+- name: Create a GCP RHEL instance
+  hosts: localhost
+  vars:
+    gcp_project: "rhpds-345620"
+    gcp_cred_kind: "serviceaccount"
+    disk_name: ""
+    size_gb: ""
+    gcp_net_instance_name: ""
+    gcp_IPv4_instance_name: ""
+    gcp_instance_name: ""
+    gcp_source_image: "" # projects/rhel-cloud/global/images/rhel-8-v20220406 # projects/rhel-cloud/global/images/rhel-9-1
+    gcp_region: "us-west1" # us-west1 or us-west2
+    my_gcp_machine_type: "n1-standard-1" # n1-standard-1, n1-standard-2, n1-standard-4
+    gcp_state: "present"
+    gcp_zone: "us-west1-b"
+
+  tasks:
+    - name: create a GCP disk mapped from RHEL image
+      gcp_compute_disk:
+        name: "{{ disk_name }}"
+        size_gb: "{{ size_gb }}"
+        source_image: "{{ gcp_source_image }}"
+        zone: "{{ gcp_zone }}"
+        project: "{{ gcp_project }}"
+        auth_kind: "{{ gcp_cred_kind }}"
+        state: "{{ gcp_state }}"
+      register: disk
+
+    - name: printing GCP disk info
+      debug:
+        var: disk
+
+    - name: creating the GCP VPC...
+      gcp_compute_network:
+        name: "{{ gcp_net_instance_name }}"
+        auto_create_subnetworks: "true"
+        project: "{{ gcp_project }}"
+        auth_kind: "{{ gcp_cred_kind }}"
+        state: "{{ gcp_state }}"
+      register: network
+    
+    - name: creating GCP IPv4 public IP address
+      gcp_compute_address:
+        name: "{{ gcp_IPv4_instance_name }}"
+        region: "{{ gcp_region }}"
+        project: "{{ gcp_project }}"
+        auth_kind: "{{ gcp_cred_kind }}"
+        state: "{{ gcp_state }}"
+      register: address
+
+    - name: creating the GCP RHEL instance
+      gcp_compute_instance:
+        name: "{{ gcp_instance_name }}"
+        machine_type: "{{ my_gcp_machine_type }}"
+        disks:
+        - auto_delete: "true"
+          boot: "true"
+          source: "{{ disk }}"
+        network_interfaces:
+        - network: "{{ network }}"
+          access_configs:
+          - name: External NAT
+            nat_ip: "{{ address }}"
+            type: ONE_TO_ONE_NAT
+        zone:  "{{ gcp_zone }}"
+        project: "{{ gcp_project }}"
+        auth_kind: "{{ gcp_cred_kind }}"
+        state: "{{ gcp_state }}"
+
+    - name: Show compute GCP instance details 
+      debug:
+        msg: "You instance ip address is {{ address.address }}"

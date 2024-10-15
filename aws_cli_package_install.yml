@@ -1,0 +1,41 @@
+---
+- name: Download & Install AWS CLI in Ansible Controller to manage AWS offline instances
+  hosts: all
+  gather_facts: false
+  vars:
+    aws_profile: ''
+    aws_access_key: ''
+    aws_secret_key: ''
+    aws_region: 'us-west-1'
+    aws_format: 'json'
+    aws_system_user: ''
+
+  tasks:
+    - name: Install "python3 & unzip" package.
+      package: name={{ item }} state=present
+      with_items:
+        - python3
+        - unzip
+
+    - name: Download the awscli bundle.
+      get_url: url=https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip dest=/tmp/awscli-bundle.zip
+      register: aws_cli_download_bundle
+
+    - name: Unarchive the installer.
+      unarchive: src=/tmp/awscli-bundle.zip dest=/tmp copy=no creates=/tmp/awscli-bundle
+      when: aws_cli_download_bundle.changed
+      register: aws_cli_unarchive_installer
+
+    - name: Install awscli package.
+      raw: sudo /tmp/aws/install -i /usr/local/aws-cli -b /usr/local/bin
+
+    - name: Configure AWS.
+      shell: /usr/local/bin/aws configure set {{ item.key }} {{ item.value }} --profile {{ aws_profile }}
+      no_log: false
+      with_dict:
+        aws_access_key_id: "{{ aws_access_key }}"
+        aws_secret_access_key: "{{ aws_secret_key }}"
+        region: "{{ aws_region }}"
+        format: "{{ aws_format }}"
+      become_user: "{{ aws_system_user }}"
+      changed_when: false

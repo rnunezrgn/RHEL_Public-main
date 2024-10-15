@@ -1,0 +1,14 @@
+---
+- name: Upgrading RPM module based on location
+  hosts: localhost
+  gather_facts: true
+  vars:
+    package_name_src: ''
+    package_name_dest: ''
+
+  tasks:
+    - name: Fetch RPM to install
+      fetch:
+        src: "{{package_name_src}}"
+        dest: "{{package_name_dest}}"
+      delegate_to: ansible-1

@@ -1,0 +1,56 @@
+---
+- name: Restore Snapshot AWS instance
+  hosts: localhost
+  gather_facts: true
+  vars:
+    region: ''
+
+  tasks:
+      - name: Record the Date & time
+        ansible.builtin.command:
+          cmd: "date '+%D:%H:%M:%S'"
+        delegate_to: 127.0.0.1
+        register: ansible_date_time
+
+      - name: "Get instances in AWS {{region}}"
+        amazon.aws.ec2_instance_info:
+          region: "{{ region }}"
+        register: ec2_instance_info
+
+      - name: Printing ALL Instance Information
+        ansible.builtin.debug:
+          msg:  "{{ ec2_instance_info }}"
+
+      - name: "Get instances INFO in AWS {{region}}"
+        amazon.aws.ec2_vol_info:
+          region: "{{ region }}"
+          filters:
+            attachment.: snapshot-id
+        register: ec2_vol_info
+
+      - name: Printing ALL VOLUMEN Information
+        ansible.builtin.debug:
+          msg:  "{{ ec2_vol_info }}"
+
+      - name: Detach a volume
+        amazon.aws.ec2_vol:
+          id: "{{ ec2_vol_info.volume-id }}"
+          instance: None
+          region: "{{ region }}"
+
+      - name: Attach the SNAPSHOT volume to an instance 
+        amazon.aws.ec2_vol: 
+          region: "{{ region }}"
+          instance: "{{ ec2_instance_info.instances[0].instance_id }}" 
+          id: "{{ ec2_vol.volume_id }}" 
+          device_name: /dev/sda1 
+          delete_on_termination: yes
+        register: ec2_attach_info
+
+      - name: Printing the public dns name and instance ID 
+        ansible.builtin.debug:
+          msg:  "{{ ec2_instance_info.instances[0].public_dns_name }} and Instance ID is {{ ec2_instance_info.instances[0].instance_id }}"
+
+      - name: Printing ATTACHED information
+        ansible.builtin.debug:
+          msg:  "{{ ec2_attach_info }}"

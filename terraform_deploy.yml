@@ -1,0 +1,26 @@
+---
+- name: Deploy Terraform
+  hosts: all
+  gather_facts: false
+  vars:
+    project_dir: ''
+    project_name: ''
+    terra_region: ''
+    terra_bucket: ''
+    terra_key: '' # random.tfstate
+
+  tasks:        
+    -name: Basic deploy of a service
+     terraform:
+        project_path: '{{ project_dir }}'
+        state: present
+
+    -name: Define the backend configuration at init
+     terraform:
+        project_path: 'project/'
+        state: "{{ state }}"
+        force_init: true
+        backend_config:
+          region: "{{ terra_region }}"
+          bucket: "{{ terra_bucket }}"
+          key: "{{ terra_key }}"

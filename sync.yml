@@ -1,0 +1,15 @@
+---
+- name: Sync files
+  hosts: all
+  gather_facts: true
+  vars:
+    package_name_src: ''
+    package_name_dest: '' 
+
+  tasks:
+    - name: Sync RPM to install
+      synchronize:
+        src: "{{package_name_src}}"
+        dest: "{{package_name_dest}}"
+        mode: pull
+      delegate_to: ansible-1
