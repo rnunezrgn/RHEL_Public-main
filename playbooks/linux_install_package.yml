@@ -12,4 +12,3 @@
       ansible.builtin.yum:
         name: "{{ dnf_package }}"
         state: "{{dnf_state }}"
-        update_cache: True
