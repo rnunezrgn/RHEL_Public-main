@@ -1,14 +1,13 @@
 ---
 - name: Install packages using DNF
   hosts: all
-  become: True
-  connection: local
   vars:
     dnf_package: ''
     dnf_state: ''
 
   tasks:
     - name: Install "{{ dnf_package }}"
-      ansible.builtin.yum:
+      ansible.builtin.dnf:
         name: "{{ dnf_package }}"
         state: "{{dnf_state }}"
+        update_cache: True
