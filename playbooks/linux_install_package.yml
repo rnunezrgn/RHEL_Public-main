@@ -9,7 +9,7 @@
 
   tasks:
     - name: Install "{{ dnf_package }}"
-      dnf:
+      ansible.builtin.dnf:
         name: "{{ dnf_package }}"
         state: "{{dnf_state }}"
         update_cache: True
